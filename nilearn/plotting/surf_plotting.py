@@ -5,9 +5,8 @@ Only matplotlib is required.
 
 # display figure? return figure?
 # scaling of figure
-# new function for rois
+# new function for plotting roi
 # why symmtric_cbar = False?
-# symmetric colormap -> _get_plot_stat_map_params
 # colorbar -> _get_plot_stat_map_params
 
 from nilearn._utils.compat import _basestring
