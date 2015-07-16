@@ -6,10 +6,11 @@ Only matplotlib is required.
 # display figure? return figure?
 # scaling of figure
 # new function for rois
-# symmetric colormap -> _get_plot_stat_map_perms
-# colorbar -> _get_plot_stat_map_perms
+# symmetric colormap -> _get_plot_stat_map_params
+# colorbar -> _get_plot_stat_map_params
 
 from nilearn._utils.compat import _basestring
+from .img_plotting import _get_plot_stat_map_params
 
 # Import libraries
 import numpy as np
@@ -125,7 +126,7 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
             stat_map_values = np.mean(stat_map_data[faces], axis=1)
 
             if threshold is not None:
-                kept_indices = np.where(stat_map_values >= threshold)[0]
+                kept_indices = np.where(abs(stat_map_values) >= threshold)[0]
                 stat_map_values = stat_map_values - stat_map_values.min() #vmin
                 stat_map_values = stat_map_values / stat_map_values.max() #vmax-vmin
                 face_colors[kept_indices] = cmap(stat_map_values[kept_indices])
@@ -135,6 +136,7 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
                 face_colors = cmap(stat_map_values)
 
         plot_mesh.set_facecolors(face_colors)
+    plot_mesh.set_edgecolors = 'none'
 
     # save figure if output file is given
     if output_file is not None:
