@@ -11,6 +11,7 @@ Only matplotlib is required.
 # gifti files?
 
 from nilearn._utils.compat import _basestring
+from .img_plotting import _get_plot_surf_params
 
 # Import libraries
 import numpy as np
@@ -35,45 +36,6 @@ def check_surf_data(filename):
     else:
         data = None
     return data
-
-
-def _get_plot_surf_params(stat_map_data, vmax, symmetric_cbar,
-                          kwargs, force_min_stat_map_value=None):
-    """ Internal function for setting value limits for plot_surf
-    """
-    # make sure that the color range is symmetrical
-    if vmax is None or symmetric_cbar in ['auto', False]:
-        stat_map_max = np.nanmax(stat_map_data)
-        if force_min_stat_map_value is None:
-            stat_map_min = np.nanmin(stat_map_data)
-        else:
-            stat_map_min = force_min_stat_map_value
-    if symmetric_cbar == 'auto':
-        symmetric_cbar = stat_map_min < 0 and stat_map_max > 0
-    if vmax is None:
-        vmax = max(-stat_map_min, stat_map_max)
-    if 'vmin' in kwargs:
-        raise ValueError('This function does not accept a "vmin" '
-                         'argument, as it uses a symmetrical range '
-                         'defined via the vmax argument. To threshold '
-                         'the map, use the "threshold" argument')
-
-    vmin = -vmax
-    if not symmetric_cbar:
-        negative_range = stat_map_max <= 0
-        positive_range = stat_map_min >= 0
-        if positive_range:
-            cbar_vmin = 0
-            cbar_vmax = None
-        elif negative_range:
-            cbar_vmax = 0
-            cbar_vmin = None
-        else:
-            cbar_vmin = stat_map_min
-            cbar_vmax = stat_map_max
-    else:
-        cbar_vmin, cbar_vmax = None, None
-    return cbar_vmin, cbar_vmax, vmin, vmax
 
 
 def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
@@ -122,25 +84,25 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
         else:
             alpha = 1
 
-    # set colormap
+    # if cmap is given as string, translate to matplotlib cmap
     if isinstance(cmap, _basestring):
         cmap = plt.cm.get_cmap(cmap)
 
-    # plot mesh, if sulcal depth file is provided, map depth values for shadow
+    # initiate figure and 3d axes
     fig = plt.figure(figsize=(15, 11))
     ax = fig.add_subplot(111, projection='3d', xlim=limits, ylim=limits)
     ax.view_init(elev=elev, azim=azim)
     ax.set_axis_off()
 
-    # plot mesh without any data
-    plot_mesh = ax.plot_trisurf(coords[:, 0], coords[:, 1], coords[:, 2],
+    # plot mesh without data
+    plot_surf = ax.plot_trisurf(coords[:, 0], coords[:, 1], coords[:, 2],
                                 triangles=faces, linewidth=0.,
                                 antialiased=False,
                                 color='white')
 
-    # if depth_map and/or stat_map are provided, map these onto the surface
-    # we use the set_facecolors function of Poly3DCollection as the facecolors
-    # argument when passed to plot_trisurf does not seem to work
+    # If depth_map and/or stat_map are provided, map these onto the surface
+    # set_facecolors function of Poly3DCollection is used as passing the
+    # facecolors argument to plot_trisurf does not seem to work
     if bg_map is not None or stat_map is not None:
 
         face_colors = np.ones((faces.shape[0], 4))
@@ -151,11 +113,12 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
             if bg_data.shape[0] != coords.shape[0]:
                 raise ValueError('The bg_map does not have the same number '
                                  'of vertices as the mesh.')
-            bg_values = np.mean(bg_data[faces], axis=1)
-            bg_values = bg_values - bg_values.min()
-            bg_values = bg_values / bg_values.max()
-            face_colors = plt.cm.gray_r(bg_values)
+            bg_faces = np.mean(bg_faces[faces], axis=1)
+            bg_faces = bg_faces - bg_faces.min()
+            bg_faces = bg_faces / bg_faces.max()
+            face_colors = plt.cm.gray_r(bg_faces)
 
+        # modify alpha values in face colors
         face_colors[:, 3] = alpha*face_colors[:, 3]
 
         if stat_map is not None:
