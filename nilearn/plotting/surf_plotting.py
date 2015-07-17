@@ -2,13 +2,11 @@
 Functions for surface visualization.
 Only matplotlib is required.
 """
-
-# display figure? return figure?
-# scaling of figure
-# plotting roi
 # reuse _get_plot_surf_params
+# plot_roi_surf
+# gifti files
+# figure size
 # display colorbar
-# gifti files?
 
 from nilearn._utils.compat import _basestring
 from .img_plotting import _get_plot_surf_params
@@ -25,14 +23,14 @@ from mpl_toolkits.mplot3d import Axes3D
 def check_surf_data(filename):
     if (filename.endswith('nii') or filename.endswith('nii.gz') or
             filename.endswith('mgz')):
-        data = np.squeeze(nib.load(filename).get_data())
+        data = np.squeeze(nibabel.load(filename).get_data())
     elif (filename.endswith('curv') or filename.endswith('sulc') or
             filename.endswith('thickness')):
-        data = nib.freesurfer.io.read_morph_data(filename)
+        data = nibabel.freesurfer.io.read_morph_data(filename)
     elif filename.endswith('annot'):
-        data = nib.freesurfer.io.read_annot(filename)[0]
+        data = nibabel.freesurfer.io.read_annot(filename)[0]
     elif filename.endswith('label'):
-        data = nib.freesurfer.io.read_label(filename)
+        data = nibabel.freesurfer.io.read_label(filename)
     else:
         data = None
     return data
@@ -46,7 +44,7 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
     """
 
     # load mesh and derive axes limits
-    coords, faces = nib.freesurfer.io.read_geometry(mesh)
+    coords, faces = nibabel.freesurfer.io.read_geometry(mesh)
     limits = [coords.min(), coords.max()]
 
     # set view
@@ -118,7 +116,7 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
             bg_faces = bg_faces / bg_faces.max()
             face_colors = plt.cm.gray_r(bg_faces)
 
-        # modify alpha values in face colors
+        # modify alpha values of background
         face_colors[:, 3] = alpha*face_colors[:, 3]
 
         if stat_map is not None:
@@ -127,21 +125,23 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
                 raise ValueError('The stat_map does not have the same number '
                                  'of vertices as the mesh. For plotting of '
                                  'rois or labels use plot_roi_surf instead')
-            stat_map_values = np.mean(stat_map_data[faces], axis=1)
+            stat_map_faces = np.mean(stat_map_faces[faces], axis=1)
 
+            # Call _get_plot_stat_map_params to derive symmetric vmin and vmax
+            # And colorbar limits depending on symmetric_cbar settings
             cbar_vmin, cbar_vmax, vmin, vmax = \
-                _get_plot_surf_params(stat_map_values, vmax,
+                _get_plot_surf_params(stat_map_faces, vmax,
                                       symmetric_cbar, kwargs)
 
             if threshold is not None:
-                kept_indices = np.where(abs(stat_map_values) >= threshold)[0]
-                stat_map_values = stat_map_values - vmin
-                stat_map_values = stat_map_values / (vmax-vmin)
-                face_colors[kept_indices] = cmap(stat_map_values[kept_indices])
+                kept_indices = np.where(abs(stat_map_faces) >= threshold)[0]
+                stat_map_faces = stat_map_faces - vmin
+                stat_map_faces = stat_map_faces / (vmax-vmin)
+                face_colors[kept_indices] = cmap(stat_map_faces[kept_indices])
             else:
-                stat_map_values = stat_map_values - vmin
-                stat_map_values = stat_map_values / (vmax-vmin)
-                face_colors = cmap(stat_map_values)
+                stat_map_faces = stat_map_faces - vmin
+                stat_map_faces = stat_map_faces / (vmax-vmin)
+                face_colors = cmap(stat_map_faces)
 
         plot_mesh.set_facecolors(face_colors)
 
