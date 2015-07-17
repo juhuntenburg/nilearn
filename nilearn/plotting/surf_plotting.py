@@ -5,23 +5,23 @@ Only matplotlib is required.
 
 # display figure? return figure?
 # scaling of figure
-# new function for plotting roi
-# why symmtric_cbar = False?
-# colorbar -> _get_plot_stat_map_params
+# plotting roi
+# reuse _get_plot_surf_params
+# display colorbar
 # gifti files?
 
 from nilearn._utils.compat import _basestring
 
 # Import libraries
 import numpy as np
-import nibabel as nib
+import nibabel
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 from mpl_toolkits.mplot3d import Axes3D
 
 
 # function to figure out datatype and load data
-def load_surf_data(filename):
+def check_surf_data(filename):
     if (filename.endswith('nii') or filename.endswith('nii.gz') or
             filename.endswith('mgz')):
         data = np.squeeze(nib.load(filename).get_data())
@@ -186,8 +186,4 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
     if output_file is not None:
         plt.savefig(output_file)
 
-# m = plt.cm.ScalarMappable(cmap=plt.cm.RdBu_r)
-# m.set_array(stat_map_values[kept_indices])
-# cbar = plt.colorbar(m)
-
-    plt.show()
+    return plot_mesh
