@@ -9,7 +9,7 @@ Only matplotlib is required.
 # display colorbar
 
 from nilearn._utils.compat import _basestring
-from .img_plotting import _get_plot_surf_params
+from .img_plotting import _get_plot_stat_map_params
 
 # Import libraries
 import numpy as np
@@ -87,7 +87,7 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
         cmap = plt.cm.get_cmap(cmap)
 
     # initiate figure and 3d axes
-    fig = plt.figure(figsize=(15, 11))
+    fig = plt.figure()  # figsize=(15, 11))
     ax = fig.add_subplot(111, projection='3d', xlim=limits, ylim=limits)
     ax.view_init(elev=elev, azim=azim)
     ax.set_axis_off()
