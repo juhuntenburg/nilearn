@@ -8,6 +8,7 @@ Only matplotlib is required.
 # new function for plotting roi
 # why symmtric_cbar = False?
 # colorbar -> _get_plot_stat_map_params
+# gifti files?
 
 from nilearn._utils.compat import _basestring
 
@@ -56,6 +57,7 @@ def _get_plot_surf_params(stat_map_data, vmax, symmetric_cbar,
                          'argument, as it uses a symmetrical range '
                          'defined via the vmax argument. To threshold '
                          'the map, use the "threshold" argument')
+
     vmin = -vmax
     if not symmetric_cbar:
         negative_range = stat_map_max <= 0
