@@ -2,11 +2,9 @@
 Functions for surface visualization.
 Only matplotlib is required.
 """
-# reuse _get_plot_surf_params
 # plot_roi_surf
 # gifti files
-# figure size
-# display colorbar
+# colorbar
 
 from nilearn._utils.compat import _basestring
 from .img_plotting import _get_plot_stat_map_params
@@ -14,37 +12,74 @@ from .img_plotting import _get_plot_stat_map_params
 # Import libraries
 import numpy as np
 import nibabel
+from nibabel import gifti
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 from mpl_toolkits.mplot3d import Axes3D
 
 
 # function to figure out datatype and load data
-def check_surf_data(filename):
-    if (filename.endswith('nii') or filename.endswith('nii.gz') or
-            filename.endswith('mgz')):
-        data = np.squeeze(nibabel.load(filename).get_data())
-    elif (filename.endswith('curv') or filename.endswith('sulc') or
-            filename.endswith('thickness')):
-        data = nibabel.freesurfer.io.read_morph_data(filename)
-    elif filename.endswith('annot'):
-        data = nibabel.freesurfer.io.read_annot(filename)[0]
-    elif filename.endswith('label'):
-        data = nibabel.freesurfer.io.read_label(filename)
-    else:
-        data = None
+def check_surf_data(surf_data, gii_darray=0):
+    # if the input is a filename, load it
+    if isinstance(surf_data, _basestring):
+        if (surf_data.endswith('nii') or surf_data.endswith('nii.gz') or
+                surf_data.endswith('mgz')):
+            data = np.squeeze(nibabel.load(surf_data).get_data())
+        elif (surf_data.endswith('curv') or surf_data.endswith('sulc') or
+                surf_data.endswith('thickness')):
+            data = nibabel.freesurfer.io.read_morph_data(surf_data)
+        elif surf_data.endswith('annot'):
+            data = nibabel.freesurfer.io.read_annot(surf_data)[0]
+        elif surf_data.endswith('label'):
+            data = nibabel.freesurfer.io.read_label(surf_data)
+        elif surf_data.endswith('gii'):
+            data = gifti.read(surf_data).darrays[gii_darray].data
+        else:
+            raise ValueError('Format of data file not recognized.')
+    # if the input is an array, it should have a single dimension
+    elif isinstace(surf_data, np.ndarray):
+        data = np.squeeze(surf_data)
+        if len(data.shape is not 0):
+            raise ValueError('Data array cannot have more than one dimension.')
     return data
 
 
-def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
+# function to figure out datatype and load data
+def check_surf_mesh(surf_mesh):
+    # if input is a filename, try to load it
+    if isinstance(surf_mesh, _basestring):
+        if (surf_mesh.endswith('orig') or surf_mesh.endswith('pial') or
+                surf_mesh.endswith('white') or surf_mesh.endswith('sphere') or
+                surf_mesh.endswith('inflated')):
+            coords, faces = nibabel.freesurfer.io.read_geometry(surf_mesh)
+        elif surf_mesh.endswith('gii'):
+            coords, faces = gifti.read(surf_mesh).darrays[0].data, \
+                            gifti.read(surf_mesh).darrays[1].data
+        else:
+            raise ValueError('Format of mesh file not recognized.')
+    # if a dictionary is given, check it contains entries for coords and faces
+    elif isinstance(surf_mesh, dict):
+        if ('faces' in surf_mesh and 'coords' in surf_mesh):
+            coords, faces = surf_mesh['coords'], surf_mesh['faces']
+        else:
+            raise ValueError('If surf_mesh is given as a dictionary it must '
+                             'contain items with keys "coords" and "faces"')
+    else:
+        raise ValueError('surf_mesh must be a either filename or a dictionary '
+                         'containing items with keys "coords" and "faces"')
+    return coords, faces
+
+
+def plot_surf(surf_mesh, hemi, stat_map=None, bg_map=None, threshold=None,
               view='lateral', cmap='RdBu_r', alpha='auto', vmax=None,
-              symmetric_cbar="auto", output_file=None, **kwargs):
+              symmetric_cbar="auto", output_file=None, gii_darray=0,
+              **kwargs):
 
     """ Plotting of surfaces with optional background and stats map
     """
 
     # load mesh and derive axes limits
-    coords, faces = nibabel.freesurfer.io.read_geometry(mesh)
+    coords, faces = check_surf_mesh(surf_mesh)
     limits = [coords.min(), coords.max()]
 
     # set view
@@ -87,16 +122,16 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
         cmap = plt.cm.get_cmap(cmap)
 
     # initiate figure and 3d axes
-    fig = plt.figure()  # figsize=(15, 11))
+    fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d', xlim=limits, ylim=limits)
     ax.view_init(elev=elev, azim=azim)
     ax.set_axis_off()
 
     # plot mesh without data
-    plot_surf = ax.plot_trisurf(coords[:, 0], coords[:, 1], coords[:, 2],
-                                triangles=faces, linewidth=0.,
-                                antialiased=False,
-                                color='white')
+    display = ax.plot_trisurf(coords[:, 0], coords[:, 1], coords[:, 2],
+                              triangles=faces, linewidth=0.,
+                              antialiased=False,
+                              color='white')
 
     # If depth_map and/or stat_map are provided, map these onto the surface
     # set_facecolors function of Poly3DCollection is used as passing the
@@ -107,11 +142,11 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
         face_colors[:, :3] = .5*face_colors[:, :3]
 
         if bg_map is not None:
-            bg_data = load_surf_data(bg_map)
+            bg_data = check_surf_data(bg_map, gii_darray=gii_darray)
             if bg_data.shape[0] != coords.shape[0]:
                 raise ValueError('The bg_map does not have the same number '
                                  'of vertices as the mesh.')
-            bg_faces = np.mean(bg_faces[faces], axis=1)
+            bg_faces = np.mean(bg_data[faces], axis=1)
             bg_faces = bg_faces - bg_faces.min()
             bg_faces = bg_faces / bg_faces.max()
             face_colors = plt.cm.gray_r(bg_faces)
@@ -120,18 +155,18 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
         face_colors[:, 3] = alpha*face_colors[:, 3]
 
         if stat_map is not None:
-            stat_map_data = load_surf_data(stat_map)
+            stat_map_data = check_surf_data(stat_map, gii_darray=gii_darray)
             if stat_map_data.shape[0] != coords.shape[0]:
                 raise ValueError('The stat_map does not have the same number '
                                  'of vertices as the mesh. For plotting of '
                                  'rois or labels use plot_roi_surf instead')
-            stat_map_faces = np.mean(stat_map_faces[faces], axis=1)
+            stat_map_faces = np.mean(stat_map_data[faces], axis=1)
 
             # Call _get_plot_stat_map_params to derive symmetric vmin and vmax
             # And colorbar limits depending on symmetric_cbar settings
             cbar_vmin, cbar_vmax, vmin, vmax = \
-                _get_plot_surf_params(stat_map_faces, vmax,
-                                      symmetric_cbar, kwargs)
+                _get_plot_stat_map_params(stat_map_faces, vmax,
+                                          symmetric_cbar, kwargs)
 
             if threshold is not None:
                 kept_indices = np.where(abs(stat_map_faces) >= threshold)[0]
@@ -143,10 +178,10 @@ def plot_surf(mesh, hemi, stat_map=None, bg_map=None, threshold=None,
                 stat_map_faces = stat_map_faces / (vmax-vmin)
                 face_colors = cmap(stat_map_faces)
 
-        plot_mesh.set_facecolors(face_colors)
+        display.set_facecolors(face_colors)
 
     # save figure if output file is given
     if output_file is not None:
         plt.savefig(output_file)
 
-    return plot_mesh
+    return display
