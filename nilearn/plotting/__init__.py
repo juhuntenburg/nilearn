@@ -41,4 +41,4 @@ from .find_cuts import find_xyz_cut_coords
 __all__ = ['cm', 'plot_img', 'plot_anat', 'plot_epi',
            'plot_roi', 'plot_stat_map', 'plot_glass_brain',
            'plot_connectome', 'plot_prob_atlas',
-           'find_xyz_cut_coords', 'plot_surf', 'check_surf_data']
+           'find_xyz_cut_coords', 'plot_surf']
