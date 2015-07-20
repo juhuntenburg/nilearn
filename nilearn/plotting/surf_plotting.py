@@ -2,9 +2,6 @@
 Functions for surface visualization.
 Only matplotlib is required.
 """
-# plot_roi_surf
-# gifti files
-# colorbar
 
 from nilearn._utils.compat import _basestring
 from .img_plotting import _get_plot_stat_map_params
@@ -70,10 +67,10 @@ def check_surf_mesh(surf_mesh):
     return coords, faces
 
 
-def plot_surf(surf_mesh, hemi, stat_map=None, bg_map=None, threshold=None,
-              view='lateral', cmap='RdBu_r', alpha='auto', vmax=None,
-              symmetric_cbar="auto", output_file=None, gii_darray=0,
-              **kwargs):
+def plot_surf_stat_map(surf_mesh, hemi, stat_map=None, bg_map=None,
+                       threshold=None, view='lateral', cmap='coolwarm',
+                       alpha='auto', vmax=None, symmetric_cbar="auto",
+                       output_file=None, gii_darray=0, **kwargs):
 
     """ Plotting of surfaces with optional background and stats map
     """
@@ -128,10 +125,10 @@ def plot_surf(surf_mesh, hemi, stat_map=None, bg_map=None, threshold=None,
     ax.set_axis_off()
 
     # plot mesh without data
-    display = ax.plot_trisurf(coords[:, 0], coords[:, 1], coords[:, 2],
-                              triangles=faces, linewidth=0.,
-                              antialiased=False,
-                              color='white')
+    p3dcollec = ax.plot_trisurf(coords[:, 0], coords[:, 1], coords[:, 2],
+                                triangles=faces, linewidth=0.,
+                                antialiased=False,
+                                color='white')
 
     # If depth_map and/or stat_map are provided, map these onto the surface
     # set_facecolors function of Poly3DCollection is used as passing the
@@ -178,10 +175,10 @@ def plot_surf(surf_mesh, hemi, stat_map=None, bg_map=None, threshold=None,
                 stat_map_faces = stat_map_faces / (vmax-vmin)
                 face_colors = cmap(stat_map_faces)
 
-        display.set_facecolors(face_colors)
+        p3dcollec.set_facecolors(face_colors)
 
     # save figure if output file is given
     if output_file is not None:
-        plt.savefig(output_file)
+        fig.savefig(output_file)
 
-    return display
+    return fig
