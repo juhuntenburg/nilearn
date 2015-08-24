@@ -10,7 +10,6 @@ import re
 import sys
 import tempfile
 import warnings
-import copy
 
 import numpy as np
 import scipy.signal
@@ -18,10 +17,10 @@ from sklearn.utils import check_random_state
 import scipy.linalg
 import nibabel
 
-from .. import datasets
 from .. import masking
 from . import logger
 from .compat import _basestring, _urllib
+from ..datasets.utils import _fetch_files
 
 
 try:
@@ -176,7 +175,7 @@ def mock_chunk_read_raise_error_(response, local_file, initial_size=0,
 
 
 class FetchFilesMock (object):
-    _mock_fetch_files = functools.partial(datasets._fetch_files, mock=True)
+    _mock_fetch_files = functools.partial(_fetch_files, mock=True)
 
     def __init__(self):
         """Create a mock that can fill a CSV file if needed
@@ -640,4 +639,11 @@ try:
 except ImportError:
     def assert_less_equal(a, b):
         if a > b:
+            raise AssertionError("%f is not less or equal than %f" % (a, b))
+
+try:
+    from nose.tools import assert_less
+except ImportError:
+    def assert_less(a, b):
+        if a >= b:
             raise AssertionError("%f is not less than %f" % (a, b))
