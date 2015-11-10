@@ -36,7 +36,7 @@ def check_surf_data(surf_data, gii_darray=0):
     # if the input is an array, it should have a single dimension
     elif isinstance(surf_data, np.ndarray):
         data = np.squeeze(surf_data)
-        if len(data.shape is not 0):
+        if len(data.shape) is not 1:
             raise ValueError('Data array cannot have more than one dimension.')
     return data
 
