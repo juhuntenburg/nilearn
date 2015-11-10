@@ -34,7 +34,7 @@ def check_surf_data(surf_data, gii_darray=0):
         else:
             raise ValueError('Format of data file not recognized.')
     # if the input is an array, it should have a single dimension
-    elif isinstace(surf_data, np.ndarray):
+    elif isinstance(surf_data, np.ndarray):
         data = np.squeeze(surf_data)
         if len(data.shape is not 0):
             raise ValueError('Data array cannot have more than one dimension.')
