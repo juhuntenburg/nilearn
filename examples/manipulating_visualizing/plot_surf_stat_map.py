@@ -29,15 +29,16 @@ plotting.plot_surf_stat_map(fsaverage5_pial, 'rh', stat_map=stat_map,
                             bg_map=sulcal_depth_map, threshold=9000,
                             view='medial')
 
-# display thresholded stat map with background map with less dark background
+# display thresholded stat map with background map with background on statmap
 plotting.plot_surf_stat_map(fsaverage5_pial, 'rh', stat_map=stat_map,
-                            bg_map=sulcal_depth_map, darkness=0.5,
+                            bg_map=sulcal_depth_map, bg_on_stat=True,
                             threshold=9000)
 
-# display thresholded stat map with background map without background on statmap
+# display thresholded stat map with background map, background on stat_map
+# with less dark background
 plotting.plot_surf_stat_map(fsaverage5_pial, 'rh', stat_map=stat_map,
-                            bg_map=sulcal_depth_map, bg_on_stat=False,
-                            threshold=9000)
+                            bg_map=sulcal_depth_map, bg_on_stat=True,
+                            darkness=0.5, threshold=9000)
 
 # display thresholded stat map without background map on inflated surface
 plotting.plot_surf_stat_map(fsaverage5_inflated, 'rh', stat_map=stat_map,

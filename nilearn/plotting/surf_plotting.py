@@ -68,10 +68,10 @@ def check_surf_mesh(surf_mesh):
 
 
 def plot_surf_stat_map(surf_mesh, hemi, stat_map=None, bg_map=None,
-                       bg_on_stat=True, threshold=None, view='lateral',
-                       cmap='coolwarm', alpha='auto', vmax=None,
-                       symmetric_cbar="auto", darkness=1,
-                       output_file=None, gii_darray=0, **kwargs):
+                       view='lateral', threshold=None, cmap='coolwarm',
+                       alpha='auto', vmax=None, symmetric_cbar="auto",
+                       bg_on_stat=False, darkness=1, gii_darray=0,
+                       output_file=None, **kwargs):
 
     """ Plotting of surfaces with optional background and stats map
 
@@ -79,39 +79,46 @@ def plot_surf_stat_map(surf_mesh, hemi, stat_map=None, bg_map=None,
             ----------
             surf_mesh: Surface object (to be defined)
             hemi: Hemisphere to display
-            stat_map:
-            bg_map:
-            bg_on_stat:
+            stat_map: Surface data (to be defined) to be displayed, optional
+            bg_map: Surface data object (to be defined), optional,
+                background image to be plotted on the mesh underneath the
+                stat_map in greyscale, most likely a sulcal depth map for
+                realistic shading.
+            view: {'lateral', 'medial', 'dorsal', 'ventral'}, view of the
+                surface that is rendered. Default is 'lateral'
             threshold : a number, None, or 'auto'
                 If None is given, the image is not thresholded.
                 If a number is given, it is used to threshold the image:
                 values below the threshold (in absolute value) are plotted
-                as transparent. If auto is given, the threshold is determined
-                magically by analysis of the image.
-            view: {'lateral', 'medial', 'dorsal', 'ventral'}, view of the
-                surface that is rendered. Default is 'lateral'
-            cmap: Colormap to use for plotting of the stat_map. Either a string
+                as transparent.
+            cmap: colormap to use for plotting of the stat_map. Either a string
                 which is a name of a matplotlib colormap, or a matplotlib
                 colormap object.
-
+            alpha: float, alpha level of the mesh (not the stat_map). If 'auto'
+                is chosen, alpha will default to .5 when no bg_map ist passed
+                and to 1 if a bg_map is passed.
+            vmax: upper bound for plotting of stat_map values.
+            symmetric_cbar: boolean or 'auto', optional, default 'auto'
+                Specifies whether the colorbar should range from -vmax to vmax
+                or from vmin to vmax. Setting to 'auto' will select the latter if
+                the range of the whole image is either positive or negative.
+                Note: The colormap will always be set to range from -vmax to vmax.
+            bg_on_stat: boolean, if True, and a bg_map is specified, the
+                stat_map data is multiplied by the background image, so that
+                e.g. sulcal depth is visible beneath the stat_map. Beware
+                that this non-uniformly changes the stat_map values according
+                to e.g the sulcal depth.
+            darkness: float, between 0 and 1, specifying the darkness of the
+                background image. 1 indicates that the original values of the
+                background are used. .5 indicates the background values are
+                reduced by half before being applied.
+            gii_darray: integer, only applies when stat_map is given as a
+                gii_file, specifies the index of the gii array in which the data
+                for the stat_map ist stored.
             output_file: string, or None, optional
                 The name of an image file to export the plot to. Valid extensions
                 are .png, .pdf, .svg. If output_file is not None, the plot
                 is saved to a file, and the display is closed.
-
-            annotate: boolean, optional
-                If annotate is True, positions and left/right annotation
-                are added to the plot.
-            draw_cross: boolean, optional
-                If draw_cross is True, a cross is drawn on the plot to
-                indicate the cut plosition.
-            black_bg: boolean, optional
-                If True, the background of the image is set to be black. If
-                you wish to save figures with a black background, you
-                will need to pass "facecolor='k', edgecolor='k'"
-                to matplotlib.pyplot.savefig.
-            colorbar: boolean, optional
-                If True, display a colorbar on the right of the plots.
             kwargs: extra keyword arguments, optional
                 Extra keyword arguments passed to matplotlib.pyplot.imshow
         """
