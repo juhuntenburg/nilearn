@@ -74,7 +74,47 @@ def plot_surf_stat_map(surf_mesh, hemi, stat_map=None, bg_map=None,
                        output_file=None, gii_darray=0, **kwargs):
 
     """ Plotting of surfaces with optional background and stats map
-    """
+
+            Parameters
+            ----------
+            surf_mesh: Surface object (to be defined)
+            hemi: Hemisphere to display
+            stat_map:
+            bg_map:
+            bg_on_stat:
+            threshold : a number, None, or 'auto'
+                If None is given, the image is not thresholded.
+                If a number is given, it is used to threshold the image:
+                values below the threshold (in absolute value) are plotted
+                as transparent. If auto is given, the threshold is determined
+                magically by analysis of the image.
+            view: {'lateral', 'medial', 'dorsal', 'ventral'}, view of the
+                surface that is rendered. Default is 'lateral'
+            cmap: Colormap to use for plotting of the stat_map. Either a string
+                which is a name of a matplotlib colormap, or a matplotlib
+                colormap object.
+
+            output_file: string, or None, optional
+                The name of an image file to export the plot to. Valid extensions
+                are .png, .pdf, .svg. If output_file is not None, the plot
+                is saved to a file, and the display is closed.
+
+            annotate: boolean, optional
+                If annotate is True, positions and left/right annotation
+                are added to the plot.
+            draw_cross: boolean, optional
+                If draw_cross is True, a cross is drawn on the plot to
+                indicate the cut plosition.
+            black_bg: boolean, optional
+                If True, the background of the image is set to be black. If
+                you wish to save figures with a black background, you
+                will need to pass "facecolor='k', edgecolor='k'"
+                to matplotlib.pyplot.savefig.
+            colorbar: boolean, optional
+                If True, display a colorbar on the right of the plots.
+            kwargs: extra keyword arguments, optional
+                Extra keyword arguments passed to matplotlib.pyplot.imshow
+        """
 
     # load mesh and derive axes limits
     coords, faces = check_surf_mesh(surf_mesh)
@@ -189,5 +229,6 @@ def plot_surf_stat_map(surf_mesh, hemi, stat_map=None, bg_map=None,
     # save figure if output file is given
     if output_file is not None:
         fig.savefig(output_file)
-
-    return fig
+        plt.close(fig)
+    else:
+        return fig
