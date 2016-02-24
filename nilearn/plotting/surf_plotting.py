@@ -34,9 +34,9 @@ def check_surf_data(surf_data, gii_darray=0):
         else:
             raise ValueError('Format of data file not recognized.')
     # if the input is an array, it should have a single dimension
-    elif isinstace(surf_data, np.ndarray):
+    elif isinstance(surf_data, np.ndarray):
         data = np.squeeze(surf_data)
-        if len(data.shape is not 0):
+        if len(data.shape) is not 1:
             raise ValueError('Data array cannot have more than one dimension.')
     return data
 
@@ -68,8 +68,9 @@ def check_surf_mesh(surf_mesh):
 
 
 def plot_surf_stat_map(surf_mesh, hemi, stat_map=None, bg_map=None,
-                       threshold=None, view='lateral', cmap='coolwarm',
-                       alpha='auto', vmax=None, symmetric_cbar="auto",
+                       bg_on_stat=True, threshold=None, view='lateral',
+                       cmap='coolwarm', alpha='auto', vmax=None,
+                       symmetric_cbar="auto", darkness=1,
                        output_file=None, gii_darray=0, **kwargs):
 
     """ Plotting of surfaces with optional background and stats map
@@ -146,6 +147,8 @@ def plot_surf_stat_map(surf_mesh, hemi, stat_map=None, bg_map=None,
             bg_faces = np.mean(bg_data[faces], axis=1)
             bg_faces = bg_faces - bg_faces.min()
             bg_faces = bg_faces / bg_faces.max()
+            # control background darkness
+            bg_faces *= darkness
             face_colors = plt.cm.gray_r(bg_faces)
 
         # modify alpha values of background
@@ -169,11 +172,17 @@ def plot_surf_stat_map(surf_mesh, hemi, stat_map=None, bg_map=None,
                 kept_indices = np.where(abs(stat_map_faces) >= threshold)[0]
                 stat_map_faces = stat_map_faces - vmin
                 stat_map_faces = stat_map_faces / (vmax-vmin)
-                face_colors[kept_indices] = cmap(stat_map_faces[kept_indices])
+                if bg_on_stat:
+                    face_colors[kept_indices] = cmap(stat_map_faces[kept_indices]) * face_colors[kept_indices]
+                else:
+                    face_colors[kept_indices] = cmap(stat_map_faces[kept_indices])
             else:
                 stat_map_faces = stat_map_faces - vmin
                 stat_map_faces = stat_map_faces / (vmax-vmin)
-                face_colors = cmap(stat_map_faces)
+                if bg_on_stat:
+                    face_colors = cmap(stat_map_faces) * face_colors
+                else:
+                    face_colors = cmap(stat_map_faces)
 
         p3dcollec.set_facecolors(face_colors)
 

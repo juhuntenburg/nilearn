@@ -9,10 +9,10 @@ from nilearn import plotting
 
 # Retrieve the data: to be replaced by nilearn dataset
 
-fsaverage5_pial = '/home/julia/data/paris/fsaverage/fsaverage5/surf/rh.pial'
-fsaverage5_inflated = '/home/julia/data/paris/fsaverage/fsaverage5/surf/rh.inflated'
-sulcal_depth_map = '/home/julia/data/paris/fsaverage/fsaverage5/surf/rh.sulc'
-stat_map = '' '/home/julia/data/paris/2500/fwhm6/0100451/RsfMRI_preprocessed_0100451_fsaverage5_1d_neg.rh.nii.gz'
+fsaverage5_pial = '/SCR/data/paris/fsaverage/fsaverage5/surf/rh.pial'
+fsaverage5_inflated = '/SCR/data/paris/fsaverage/fsaverage5/surf/rh.inflated'
+sulcal_depth_map = '/SCR/data/paris/fsaverage/fsaverage5/surf/rh.sulc'
+stat_map = '/SCR/data/paris/2500/fwhm6/0100451/RsfMRI_preprocessed_0100451_fsaverage5_1d_neg.rh.nii.gz'
 
 
 # display unthresholded stat map in lateral and medial view
@@ -28,6 +28,16 @@ plotting.plot_surf_stat_map(fsaverage5_pial, 'rh', stat_map=stat_map,
 plotting.plot_surf_stat_map(fsaverage5_pial, 'rh', stat_map=stat_map,
                             bg_map=sulcal_depth_map, threshold=9000,
                             view='medial')
+
+# display thresholded stat map with background map with less dark background
+plotting.plot_surf_stat_map(fsaverage5_pial, 'rh', stat_map=stat_map,
+                            bg_map=sulcal_depth_map, darkness=0.5,
+                            threshold=9000)
+
+# display thresholded stat map with background map without background on statmap
+plotting.plot_surf_stat_map(fsaverage5_pial, 'rh', stat_map=stat_map,
+                            bg_map=sulcal_depth_map, bg_on_stat=False,
+                            threshold=9000)
 
 # display thresholded stat map without background map on inflated surface
 plotting.plot_surf_stat_map(fsaverage5_inflated, 'rh', stat_map=stat_map,
